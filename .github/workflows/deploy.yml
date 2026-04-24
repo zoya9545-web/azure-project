@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  IMAGE_NAME: zoya9545/myapp
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -13,22 +16,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
+    - name: Set image tag
+      run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
     - name: Login to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and Push Docker Image
-      run: |
-        image_TAG=${{ github.sha }}
-        docker build -t zoya9545/myapp:$IMAGE_TAG
-        docker push zoya9545/myapp:$IMAGE_TAG
+    - name: Build Docker image
+      run: docker build -t $IMAGE_NAME:$IMAGE_TAG .
 
+    - name: Push Docker image
+      run: docker push $IMAGE_NAME:$IMAGE_TAG
 
     - name: Deploy to Azure App Service
       uses: azure/webapps-deploy@v2
       with:
         app-name: myapp-devops-123
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-        images: zoya9545/myapp:latest
+        images: $IMAGE_NAME:$IMAGE_TAG
