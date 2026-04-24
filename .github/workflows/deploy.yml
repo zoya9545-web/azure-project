@@ -21,8 +21,10 @@ jobs:
 
     - name: Build and Push Docker Image
       run: |
-        docker build -t zoya9545/myapp:latest .
-        docker push zoya9545/myapp:latest
+        image_TAG=${{ github.sha }}
+        docker build -t zoya9545/myapp:$IMAGE_TAG
+        docker push zoya9545/myapp:$IMAGE_TAG
+
 
     - name: Deploy to Azure App Service
       uses: azure/webapps-deploy@v2
