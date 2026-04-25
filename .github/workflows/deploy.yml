@@ -1,4 +1,4 @@
-name: Docker CI/CD to Azure
+name: Docker CI/CD to VM
 
 on:
   push:
@@ -31,13 +31,14 @@ jobs:
     - name: Push Docker image
       run: docker push $IMAGE_NAME:$IMAGE_TAG
 
-    - name: Azure Login
-      uses: azure/login@v1
+    - name: Deploy to VM via SSH
+      uses: appleboy/ssh-action@v1.0.0
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Deploy to Azure App Service
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: myapp-devops-123
-        images: $IMAGE_NAME:$IMAGE_TAG
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          docker pull zoya9545/myapp:latest
+          docker stop myapp || true
+          docker rm myapp || true
+          docker run -d -p 3000:3000 --name myapp zoya9545/myapp:latest
